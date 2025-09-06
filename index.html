@@ -1,31 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIONGaBSS - Coming Soon</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Babooda Chat</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f0f2f5;
-      color: #333;
-      padding: 50px;
-    }
-    h1 {
-      font-size: 3em;
-      margin-top: 20%;
-      color: #2c3e50;
-    }
-    p {
-      font-size: 1.2em;
-      color: #555;
-    }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin:0; }
+    #chatbox { width: 400px; height: 500px; background: #fff; border: 2px solid #444; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; box-shadow: 0 4px 8px rgba(0,0,0,0.2);}
+    #messages { flex: 1; overflow-y: auto; margin-bottom: 10px; font-size: 14px; }
+    .msg { margin: 5px 0; }
+    .user { text-align: right; color: blue; }
+    .bot { text-align: left; color: green; }
+    #inputArea { display: flex; }
+    #input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+    #send { padding: 8px 12px; margin-left: 5px; border: none; background: #4CAF50; color: white; border-radius: 5px; cursor: pointer; }
+    #send:hover { background: #45a049; }
   </style>
 </head>
 <body>
-  <h1>🚀 LIONGaBSS</h1>
-  <p>Our Website is Coming Soon. Stay Tuned!</p>
-  <p>Contact: babooda@liongabss.com</p>
+  <div id="chatbox">
+    <div id="messages"></div>
+    <div id="inputArea">
+      <input type="text" id="input" placeholder="Type a message..." />
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById("messages");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+
+    function appendMessage(text, cls) {
+      const div = document.createElement("div");
+      div.className = "msg " + cls;
+      div.innerText = text;
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const userText = input.value;
+      if (!userText) return;
+      appendMessage(userText, "user");
+      input.value = "";
+
+      const res = await fetch("https://babooda-server-raq1qhp3h.vercel.app/api/webhook", {   // তোমার Vercel webhook URL
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: { payload: { text: userText }, sender: { phone: "web-user" } } }),
+      });
+
+      const data = await res.json();
+      appendMessage(data.reply, "bot");
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
 </body>
 </html>

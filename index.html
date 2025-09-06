@@ -1,63 +1,183 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Babooda Chat</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Babooda – Teaching Chat</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin:0; }
-    #chatbox { width: 400px; height: 500px; background: #fff; border: 2px solid #444; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; box-shadow: 0 4px 8px rgba(0,0,0,0.2);}
-    #messages { flex: 1; overflow-y: auto; margin-bottom: 10px; font-size: 14px; }
-    .msg { margin: 5px 0; }
-    .user { text-align: right; color: blue; }
-    .bot { text-align: left; color: green; }
-    #inputArea { display: flex; }
-    #input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
-    #send { padding: 8px 12px; margin-left: 5px; border: none; background: #4CAF50; color: white; border-radius: 5px; cursor: pointer; }
-    #send:hover { background: #45a049; }
+    :root{
+      --bg:#0f172a;        /* slate-900 */
+      --panel:#111827;     /* gray-900 */
+      --card:#0b1220;      /* deep */
+      --accent:#22d3ee;    /* cyan-400 */
+      --text:#e5e7eb;      /* gray-200 */
+      --muted:#94a3b8;     /* slate-400 */
+      --bot:#1e293b;       /* slate-800 */
+      --user:#334155;      /* slate-700 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;background:radial-gradient(1200px 600px at 100% -10%, #0a1628 0%, var(--bg) 50%);
+      color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",sans-serif;
+      display:flex;align-items:center;justify-content:center;padding:16px;
+    }
+    .wrap{
+      width:100%;max-width:860px;display:grid;grid-template-rows:auto 1fr auto;
+      height:92vh;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);border-radius:18px;overflow:hidden;
+      box-shadow:0 10px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+    }
+    header{
+      display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);
+      background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);
+    }
+    .logo{
+      width:36px;height:36px;border-radius:12px;background:conic-gradient(from 180deg,#0ea5e9,#22d3ee,#a78bfa);
+      display:grid;place-items:center;color:#00131a;font-weight:900;letter-spacing:.5px;
+      box-shadow:inset 0 0 16px rgba(255,255,255,.35),0 2px 10px rgba(0,0,0,.35);
+    }
+    header h1{font-size:16px;margin:0}
+    header p{margin:0;color:var(--muted);font-size:12px}
+    .chat{
+      padding:18px;overflow:auto;background:
+        radial-gradient(800px 500px at -10% 0%, rgba(34,211,238,.06), transparent 40%),
+        radial-gradient(900px 650px at 110% 0%, rgba(167,139,250,.07), transparent 45%);
+    }
+    .msg{max-width:78%;padding:12px 14px;margin:8px 0;border-radius:14px;position:relative;word-wrap:break-word;white-space:pre-wrap}
+    .bot{background:var(--bot);border:1px solid rgba(255,255,255,.06)}
+    .user{background:var(--user);margin-left:auto;border:1px solid rgba(255,255,255,.07)}
+    .msg small{display:block;margin-top:6px;color:var(--muted);font-size:11px}
+    .typing{display:inline-block;min-width:42px}
+    .dot{display:inline-block;width:6px;height:6px;margin:0 2px;border-radius:50%;background:var(--muted);opacity:.6;animation:blink 1.2s infinite}
+    .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+    @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+    form{
+      display:flex;gap:10px;padding:12px;border-top:1px solid rgba(255,255,255,.08);background:var(--panel)
+    }
+    textarea{
+      resize:none;flex:1;min-height:46px;max-height:140px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.09);
+      background:var(--card);color:var(--text);outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)
+    }
+    button{
+      padding:0 16px;border:0;border-radius:12px;background:linear-gradient(180deg,#22d3ee,#06b6d4);
+      color:#001318;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px
+    }
+    button:disabled{opacity:.6;cursor:wait}
+    .hint{font-size:12px;color:var(--muted);padding:6px 16px 12px}
+    .link{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(34,211,238,.4)}
   </style>
 </head>
 <body>
-  <div id="chatbox">
-    <div id="messages"></div>
-    <div id="inputArea">
-      <input type="text" id="input" placeholder="Type a message..." />
-      <button id="send">Send</button>
-    </div>
+  <div class="wrap" role="application" aria-label="Babooda Teaching Chat">
+    <header>
+      <div class="logo">B</div>
+      <div>
+        <h1>Babooda — Teaching Assistant</h1>
+        <p>Guided by: Teach Like a Champion · The Art of Teaching · Effective Teaching · 21st-Century Educator</p>
+      </div>
+    </header>
+
+    <div id="chat" class="chat" aria-live="polite"></div>
+
+    <div class="hint">Tip: Ask things like “Explain photosynthesis in 3 levels” or “Create a 20-minute lesson plan with practice and feedback”.</div>
+
+    <form id="form">
+      <textarea id="input" placeholder="Type your question to Babooda…" rows="1"></textarea>
+      <button id="send" type="submit" aria-label="Send message">Send ➤</button>
+    </form>
   </div>
 
   <script>
-    const messagesDiv = document.getElementById("messages");
+    // 1) Set your backend endpoint here
+    // Example: const BACKEND_URL = "https://babooda-server-xxxxx.vercel.app/api/chat";
+    const BACKEND_URL = "/api/chat"; // change if your API lives elsewhere
+
+    // (Optional) If your API needs an auth token, put it here and also add it to fetch headers.
+    const AUTH_TOKEN = ""; // e.g. "Bearer xxxxx"
+
+    // 2) Simple session so the backend can keep context if it wants
+    const sessionId = localStorage.getItem("babooda_session") || crypto.randomUUID();
+    localStorage.setItem("babooda_session", sessionId);
+
+    // 3) UI helpers
+    const chat = document.getElementById("chat");
+    const form = document.getElementById("form");
     const input = document.getElementById("input");
     const sendBtn = document.getElementById("send");
 
-    function appendMessage(text, cls) {
-      const div = document.createElement("div");
-      div.className = "msg " + cls;
-      div.innerText = text;
-      messagesDiv.appendChild(div);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    function addMsg(text, who="bot"){
+      const el = document.createElement("div");
+      el.className = `msg ${who}`;
+      el.innerText = text;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+      return el;
     }
 
-    async function sendMessage() {
-      const userText = input.value;
-      if (!userText) return;
-      appendMessage(userText, "user");
-      input.value = "";
-
-      const res = await fetch("https://babooda-server-raq1qhp3h.vercel.app/api/webhook", {   // তোমার Vercel webhook URL
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload: { payload: { text: userText }, sender: { phone: "web-user" } } }),
-      });
-
-      const data = await res.json();
-      appendMessage(data.reply, "bot");
+    function addTyping(){
+      const el = document.createElement("div");
+      el.className = "msg bot typing";
+      el.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+      return el;
     }
 
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendMessage();
+    // 4) Welcome message
+    addMsg("Hi! I’m Babooda. Tell me what you’re learning, and I’ll teach using clear steps, practice, and feedback. Ask me anything ✨", "bot");
+
+    // 5) Auto-grow textarea
+    input.addEventListener("input", () => {
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 140) + "px";
+    });
+
+    // 6) Send on Enter (without Shift)
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        form.dispatchEvent(new Event("submit"));
+      }
+    });
+
+    // 7) Submit
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMsg(text, "user");
+      input.value = ""; input.style.height = "46px";
+      sendBtn.disabled = true;
+      const typing = addTyping();
+
+      try{
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(AUTH_TOKEN ? { "Authorization": AUTH_TOKEN } : {})
+          },
+          body: JSON.stringify({ sessionId, message: text })
+        });
+
+        const data = await res.json();
+        typing.remove();
+
+        if (!res.ok) {
+          addMsg(`Oops, server error: ${data?.error || res.status}`, "bot");
+        } else {
+          addMsg(data.reply || "I couldn't process that. Please try again.", "bot");
+        }
+      } catch(err){
+        typing.remove();
+        addMsg("Network error. Please check your connection or try again later.", "bot");
+        console.error(err);
+      } finally{
+        sendBtn.disabled = false;
+      }
     });
   </script>
 </body>
